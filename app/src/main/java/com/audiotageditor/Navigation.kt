@@ -1,6 +1,5 @@
 package com.audiotageditor
 
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,10 +40,10 @@ fun MainNavigation() {
                     navController.navigate("settings")
                 },
                 viewModel = libraryViewModel,
-                modifier = Modifier.safeDrawingPadding()
+                modifier = Modifier
             )
         }
-        composable(route = "editor") { backStackEntry ->
+        composable(route = "editor") {
             val uris = repository.getSelectedUris()
             val viewModel: EditorScreenViewModel = viewModel { EditorScreenViewModel(repository) }
 
@@ -52,7 +51,7 @@ fun MainNavigation() {
                 selectedUris = uris,
                 onNavigateBack = { navController.popBackStack() },
                 viewModel = viewModel,
-                modifier = Modifier.safeDrawingPadding()
+                modifier = Modifier
             )
         }
         composable(route = "rename") {
@@ -61,14 +60,14 @@ fun MainNavigation() {
                 selectedUris = uris,
                 onNavigateBack = { navController.popBackStack() },
                 viewModel = libraryViewModel,
-                modifier = Modifier.safeDrawingPadding()
+                modifier = Modifier
             )
         }
         composable("settings") {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 viewModel = libraryViewModel,
-                modifier = Modifier.safeDrawingPadding()
+                modifier = Modifier
             )
         }
     }

@@ -11,44 +11,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel() {
 
-    // Basic repository states
     val isLoading = repository.isLoading
     val currentFolderUri = repository.currentFolderUri
 
-    // Selected URIs for batch operations
     private val _selectedUris = MutableStateFlow<Set<String>>(emptySet())
     val selectedUris = _selectedUris.asStateFlow()
 
-    // Search query
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
-
-    // Filtered files combining search query and loaded files
-    val filteredFiles: StateFlow<List<AudioMetadata>> = combine(
-        repository.loadedFiles,
-        _searchQuery
-    ) { files, query ->
-        if (query.isBlank()) {
-            files
-        } else {
-            files.filter { file ->
-                file.title.contains(query, ignoreCase = true) ||
-                        file.artist.contains(query, ignoreCase = true) ||
-                        file.fileName.contains(query, ignoreCase = true) ||
-                        file.album.contains(query, ignoreCase = true)
-            }
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
+    val filteredFiles: StateFlow<List<AudioMetadata>> = repository.loadedFiles
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadFolder(context: Context, treeUri: Uri) {
         viewModelScope.launch {
@@ -115,12 +90,10 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
                     )
                 }
             }
-            // Reload folder
             val currentFolder = currentFolderUri.value
             if (currentFolder != null && currentFolder != "Selected Files") {
                 repository.loadFolder(context, Uri.parse(currentFolder))
             } else {
-                // reload files if loaded individually
                 val allUris = repository.loadedFiles.value.map { Uri.parse(it.uriString) }
                 repository.loadFiles(context, allUris)
             }

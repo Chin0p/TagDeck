@@ -2,6 +2,8 @@ package com.audiotageditor.ui.library
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -125,6 +127,7 @@ fun RenameScreen(
         },
         sheetPeekHeight = 120.dp,
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
@@ -147,7 +150,7 @@ fun RenameScreen(
                     item {
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                             ),
                             shape = RoundedCornerShape(16.dp)
                         ) {
@@ -251,7 +254,7 @@ fun RenameScreen(
                         ) {
                             Card(
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                 ),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth()

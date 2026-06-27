@@ -131,7 +131,7 @@ object TagEngine {
             val sampleRateVal = audioProps?.sampleRate ?: 0
             val sampleRateStr = if (sampleRateVal > 0) String.format(Locale.US, "%.1f kHz", sampleRateVal / 1000.0) else "Unknown kHz"
             
-            val hasCover = hasCoverArt(context, uri, ext)
+            val hasCover = false
             
             return AudioMetadata(
                 uriString = uri.toString(),
@@ -376,41 +376,6 @@ object TagEngine {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to clean temp files", e)
-        }
-    }
-
-    private fun hasCoverArt(context: Context, uri: Uri, ext: String): Boolean {
-        var pfd: ParcelFileDescriptor? = null
-        var dupPfd: ParcelFileDescriptor? = null
-        var rawFd = -1
-        var success = false
-        return try {
-            pfd = context.contentResolver.openFileDescriptor(uri, "r") ?: return false
-            dupPfd = pfd.dup()
-            rawFd = dupPfd.detachFd()
-            val art = kTagLib.getArtwork(rawFd, ext)
-            success = true
-            art != null && art.isNotEmpty()
-        } catch (e: Throwable) {
-            false
-        } finally {
-            try {
-                pfd?.close()
-            } catch (e: Exception) {
-                // ignore
-            }
-            try {
-                dupPfd?.close()
-            } catch (e: Exception) {
-                // ignore
-            }
-            if (!success && rawFd != -1) {
-                try {
-                    ParcelFileDescriptor.adoptFd(rawFd).close()
-                } catch (e: Exception) {
-                    // ignore
-                }
-            }
         }
     }
 

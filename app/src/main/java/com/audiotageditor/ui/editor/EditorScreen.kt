@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -148,6 +150,7 @@ fun EditorScreen(
         },
         sheetPeekHeight = 120.dp,
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
@@ -161,6 +164,7 @@ fun EditorScreen(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else {
+                val showRemoveCoverOption = isBatch || uiState.albumArtBytes != null
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 32.dp, start = 16.dp, end = 16.dp, top = 16.dp),
@@ -168,13 +172,12 @@ fun EditorScreen(
                 ) {
                     // 1. Remove cover option at the top of metadata fields (if supported / applicable)
                     // In batch mode, we always show it. In single mode, we show it if the file currently has cover art.
-                    val showRemoveCoverOption = isBatch || files.firstOrNull()?.hasCoverArt == true
                     if (showRemoveCoverOption) {
                         item {
                             OutlinedCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)),
+                                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                             ) {
                                 Row(
@@ -394,9 +397,9 @@ fun AdvancedTechnicalInfoCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -441,7 +444,7 @@ fun TechnicalInfoItem(label: String, value: String, modifier: Modifier = Modifie
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value.ifBlank { "Unknown" },
@@ -575,12 +578,12 @@ fun EditorTextField(
             textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
             keyboardOptions = keyboardOptions,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent

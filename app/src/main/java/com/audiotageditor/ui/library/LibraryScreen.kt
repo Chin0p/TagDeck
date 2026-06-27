@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -141,22 +143,13 @@ fun LibraryScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             Column(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .width(260.dp)
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
                             ) {
-                                Text(
-                                    text = "Theme Mode",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    ThemeMode.values().forEach { mode ->
+                                    ThemeMode.entries.forEach { mode ->
                                         val isSelected = themeMode == mode
                                         val icon = when (mode) {
                                             ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness
@@ -172,10 +165,9 @@ fun LibraryScreen(
                                         IconButton(
                                             onClick = { ThemeManager.setThemeMode(mode) },
                                             modifier = Modifier
-                                                .size(56.dp)
-                                                .padding(4.dp)
+                                                .size(48.dp)
                                                 .background(
-                                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
                                                     shape = RoundedCornerShape(12.dp)
                                                 )
                                         ) {
@@ -183,7 +175,7 @@ fun LibraryScreen(
                                                 imageVector = icon,
                                                 contentDescription = contentDescription,
                                                 tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(20.dp)
                                             )
                                         }
                                     }
@@ -191,7 +183,7 @@ fun LibraryScreen(
                             }
                             HorizontalDivider(
                                 modifier = Modifier.padding(vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                color = MaterialTheme.colorScheme.outlineVariant
                             )
                             DropdownMenuItem(
                                 text = { Text("Rename Files") },
@@ -257,13 +249,24 @@ fun LibraryScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 if (isLoading) {
                     // Beautiful Skeleton Loading Screens
+                    val shimmerTransition = rememberInfiniteTransition(label = "ShimmerTransition")
+                    val shimmerAlpha by shimmerTransition.animateFloat(
+                        initialValue = 0.3f,
+                        targetValue = 0.8f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 800, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "ShimmerAlpha"
+                    )
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 120.dp),
+                        contentPadding = PaddingValues(bottom = 88.dp),
                         userScrollEnabled = false
                     ) {
                         items(8) {
-                            SkeletonItem()
+                            SkeletonItem(shimmerAlpha = shimmerAlpha)
                         }
                     }
                 } else if (files.isEmpty()) {
@@ -274,7 +277,7 @@ fun LibraryScreen(
                     // Files list
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 120.dp)
+                        contentPadding = PaddingValues(bottom = 88.dp)
                     ) {
                         items(files, key = { it.uriString }) { item ->
                             val isSelected = selectedUris.contains(item.uriString)
@@ -314,18 +317,17 @@ fun AudioItemCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(
-                    1.dp,
-                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    RoundedCornerShape(16.dp)
-                )
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick
                 ),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(
+                width = 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            ),
             colors = CardDefaults.cardColors(
-                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
             )
         ) {
             Row(
@@ -340,8 +342,8 @@ fun AudioItemCard(
                         .size(56.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                            else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -397,22 +399,7 @@ fun AudioItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        AssistChip(
-                            onClick = {},
-                            label = { 
-                                Text(
-                                    text = item.cleanFormat,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                ) 
-                            },
-                            shape = RoundedCornerShape(6.dp),
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                labelColor = MaterialTheme.colorScheme.primary
-                            ),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                            modifier = Modifier.height(28.dp)
-                        )
+                        FormatBadge(format = item.cleanFormat)
                         Text(
                             text = "•",
                             style = MaterialTheme.typography.bodySmall,
@@ -452,6 +439,31 @@ fun AudioItemCard(
     }
 
 @Composable
+private fun FormatBadge(format: String) {
+    Box(
+        modifier = Modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .background(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = format,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
 fun EmptyStateComponent(
     onSelectFilesClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -472,7 +484,7 @@ fun EmptyStateComponent(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -538,25 +550,14 @@ fun EmptyStateComponent(
 }
 
 @Composable
-fun SkeletonItem() {
-    val infiniteTransition = rememberInfiniteTransition(label = "SkeletonTransition")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "SkeletonAlpha"
-    )
-
+fun SkeletonItem(shimmerAlpha: Float) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Row(
@@ -570,7 +571,7 @@ fun SkeletonItem() {
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = alpha))
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = shimmerAlpha))
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -586,7 +587,7 @@ fun SkeletonItem() {
                         .fillMaxWidth(0.7f)
                         .height(18.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = alpha))
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = shimmerAlpha))
                 )
                 // Artist skeleton
                 Box(
@@ -594,7 +595,7 @@ fun SkeletonItem() {
                         .fillMaxWidth(0.4f)
                         .height(14.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = alpha))
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = shimmerAlpha))
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -610,7 +611,7 @@ fun SkeletonItem() {
                                 .width(50.dp)
                                 .height(16.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = alpha))
+                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = shimmerAlpha))
                         )
                     }
                 }
