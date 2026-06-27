@@ -127,13 +127,13 @@ fun RenameScreen(
         },
         sheetPeekHeight = 120.dp,
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.systemBars,
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .windowInsetsPadding(WindowInsets.systemBars)
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
