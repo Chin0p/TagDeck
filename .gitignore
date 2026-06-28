@@ -1,14 +1,16 @@
-*.iml
+# Folders
 .gradle
 .kotlin
 /build/**
-/docs
-app/build/
+/docs/**
+app/build/**
+
+# Files
+*.iml
 .properties
 .env
 .config
 *.jks
 *.keystore
 .env.example
-
 local.properties
