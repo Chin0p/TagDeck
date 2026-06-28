@@ -1,9 +1,9 @@
 # Folders
 .gradle
 .kotlin
-/build/**
-/docs/**
-app/build/**
+build
+docs
+app/build
 
 # Files
 *.iml
@@ -14,3 +14,4 @@ app/build/**
 *.keystore
 .env.example
 local.properties
+*.html
