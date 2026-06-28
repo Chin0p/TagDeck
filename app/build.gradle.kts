@@ -10,7 +10,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.audiotageditor"
+        applicationId = "com.aistudio.audiotageditor.xkldmr"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -21,11 +21,11 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
+            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/keystore.jks"
             storeFile = file(keystorePath)
-            storePassword = System.getenv("STORE_PASSWORD")
+            storePassword = "pass347685"
             keyAlias = "upload"
-            keyPassword = System.getenv("KEY_PASSWORD")
+            keyPassword = "pass347685"
         }
     }
 

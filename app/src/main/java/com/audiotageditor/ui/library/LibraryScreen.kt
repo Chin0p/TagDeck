@@ -19,6 +19,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,7 +92,6 @@ import com.audiotageditor.theme.ThemeMode
 fun LibraryScreen(
     onEditSelected: (List<String>) -> Unit,
     onNavigateToRename: (List<String>) -> Unit,
-    onNavigateToSettings: () -> Unit,
     viewModel: LibraryScreenViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -184,42 +184,43 @@ fun LibraryScreen(
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(4.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     ThemeMode.entries.forEach { mode ->
                                         val isSelected = themeMode == mode
-                                        val icon = when (mode) {
-                                            ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness
-                                            ThemeMode.LIGHT -> Icons.Default.LightMode
-                                            ThemeMode.DARK -> Icons.Default.DarkMode
-                                        }
-                                        val contentDescription = when (mode) {
-                                            ThemeMode.SYSTEM -> "System Theme"
-                                            ThemeMode.LIGHT -> "Light Theme"
-                                            ThemeMode.DARK -> "Dark Theme"
+                                        val text = when (mode) {
+                                            ThemeMode.SYSTEM -> "System"
+                                            ThemeMode.LIGHT -> "Light"
+                                            ThemeMode.DARK -> "Dark"
                                         }
 
-                                        IconButton(
-                                            onClick = { ThemeManager.setThemeMode(mode) },
+                                        Box(
                                             modifier = Modifier
-                                                .size(48.dp)
+                                                .clip(RoundedCornerShape(6.dp))
                                                 .background(
-                                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                                    shape = RoundedCornerShape(12.dp)
+                                                    if (isSelected) MaterialTheme.colorScheme.surface else androidx.compose.ui.graphics.Color.Transparent
                                                 )
+                                                .clickable { ThemeManager.setThemeMode(mode) }
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Icon(
-                                                imageVector = icon,
-                                                contentDescription = contentDescription,
-                                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(20.dp)
+                                            Text(
+                                                text = text,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -241,19 +242,6 @@ fun LibraryScreen(
                                 onClick = {
                                     menuExpanded = false
                                     onNavigateToRename(selectedUris.toList())
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Settings") },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = null
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    onNavigateToSettings()
                                 }
                             )
                         }

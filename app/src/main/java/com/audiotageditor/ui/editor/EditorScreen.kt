@@ -1,21 +1,66 @@
 package com.audiotageditor.ui.editor
 
 import android.widget.Toast
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.HideImage
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -183,13 +228,14 @@ fun EditorFormContent(
     val removeCover = uiState.removeCover
 
     val showRemoveCoverOption = isBatch || uiState.albumArtBytes != null
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 32.dp, start = 16.dp, end = 16.dp, top = 16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            .padding(bottom = 32.dp, start = 16.dp, end = 16.dp, top = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (uiState.coverImageBitmap != null) {
-            item {
                 androidx.compose.foundation.Image(
                     bitmap = uiState.coverImageBitmap,
                     contentDescription = "Cover Art",
@@ -199,9 +245,7 @@ fun EditorFormContent(
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
                 )
-            }
         } else if (!isBatch) {
-            item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -217,13 +261,11 @@ fun EditorFormContent(
                         modifier = Modifier.size(64.dp)
                     )
                 }
-            }
         }
 
         // 1. Remove cover option at the top of metadata fields (if supported / applicable)
         // In batch mode, we always show it. In single mode, we show it if the file currently has cover art.
         if (showRemoveCoverOption) {
-            item {
                 OutlinedCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
@@ -263,11 +305,9 @@ fun EditorFormContent(
                                     )
                                 }
                             }
-                        }
                     }
 
                     // Form Fields Header
-                    item {
                         Text(
                             text = "METADATA FIELDS",
                             fontSize = 12.sp,
@@ -275,11 +315,9 @@ fun EditorFormContent(
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
-                    }
 
                     // Title (Single only)
                     if (!isBatch) {
-                        item {
                             EditorTextField(
                                 value = title,
                                 onValueChange = { viewModel.updateTitle(it) },
@@ -288,11 +326,9 @@ fun EditorFormContent(
                                 currentAction = "OVERWRITE",
                                 onActionChange = {}
                             )
-                        }
                     }
 
                     // Artist
-                    item {
                         EditorTextField(
                             value = artist,
                             onValueChange = { viewModel.updateArtist(it) },
@@ -301,10 +337,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["artist"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("artist", action) }
                         )
-                    }
 
                     // Album
-                    item {
                         EditorTextField(
                             value = album,
                             onValueChange = { viewModel.updateAlbum(it) },
@@ -313,10 +347,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["album"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("album", action) }
                         )
-                    }
 
                     // Album Artist
-                    item {
                         EditorTextField(
                             value = albumArtist,
                             onValueChange = { viewModel.updateAlbumArtist(it) },
@@ -325,10 +357,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["albumArtist"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("albumArtist", action) }
                         )
-                    }
 
                     // Genre
-                    item {
                         EditorTextField(
                             value = genre,
                             onValueChange = { viewModel.updateGenre(it) },
@@ -337,10 +367,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["genre"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("genre", action) }
                         )
-                    }
 
                     // Year
-                    item {
                         EditorTextField(
                             value = year,
                             onValueChange = { viewModel.updateYear(it) },
@@ -350,11 +378,9 @@ fun EditorFormContent(
                             onActionChange = { action -> viewModel.setMixedFieldAction("year", action) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
-                    }
 
                     // Track Number (Single only)
                     if (!isBatch) {
-                        item {
                             EditorTextField(
                                 value = track,
                                 onValueChange = { viewModel.updateTrack(it) },
@@ -364,11 +390,9 @@ fun EditorFormContent(
                                 onActionChange = {},
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                             )
-                        }
                     }
 
                     // Disc Number
-                    item {
                         EditorTextField(
                             value = discNumber,
                             onValueChange = { viewModel.updateDiscNumber(it) },
@@ -378,10 +402,8 @@ fun EditorFormContent(
                             onActionChange = { action -> viewModel.setMixedFieldAction("discNumber", action) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
-                    }
 
                     // Composer
-                    item {
                         EditorTextField(
                             value = composer,
                             onValueChange = { viewModel.updateComposer(it) },
@@ -390,10 +412,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["composer"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("composer", action) }
                         )
-                    }
 
                     // Comment
-                    item {
                         EditorTextField(
                             value = comment,
                             onValueChange = { viewModel.updateComment(it) },
@@ -402,10 +422,8 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["comment"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("comment", action) }
                         )
-                    }
 
                     // Description
-                    item {
                         EditorTextField(
                             value = description,
                             onValueChange = { viewModel.updateDescription(it) },
@@ -414,11 +432,9 @@ fun EditorFormContent(
                             currentAction = mixedFieldsAction["description"] ?: "OVERWRITE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("description", action) }
                         )
-                    }
 
                     // Advanced Technical Info Section at the bottom (Single only)
                     if (!isBatch && files.isNotEmpty()) {
-                        item {
                             Spacer(modifier = Modifier.height(8.dp))
                             val file = files.first()
                             AdvancedTechnicalInfoCard(
@@ -428,7 +444,6 @@ fun EditorFormContent(
                                 size = file.sizeFormatted,
                                 duration = file.durationFormatted
                             )
-                        }
                     }
                 }
 }
