@@ -1,4 +1,4 @@
-package com.audiotageditor.theme
+package com.tagdeck.theme
 
 import android.content.Context
 import android.content.SharedPreferences

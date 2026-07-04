@@ -1,4 +1,4 @@
-package com.audiotageditor.ui.settings
+package com.tagdeck.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,9 +43,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.audiotageditor.data.SettingsManager
-import com.audiotageditor.theme.ThemeManager
-import com.audiotageditor.theme.ThemeMode
+import com.tagdeck.data.SettingsManager
+import com.tagdeck.theme.ThemeManager
+import com.tagdeck.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

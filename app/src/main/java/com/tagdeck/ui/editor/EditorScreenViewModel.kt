@@ -1,4 +1,4 @@
-package com.audiotageditor.ui.editor
+package com.tagdeck.ui.editor
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -8,8 +8,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.audiotageditor.data.AudioMetadata
-import com.audiotageditor.data.DataRepository
+import com.tagdeck.data.AudioMetadata
+import com.tagdeck.data.DataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

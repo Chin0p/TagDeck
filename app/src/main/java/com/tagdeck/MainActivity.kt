@@ -1,4 +1,4 @@
-package com.audiotageditor
+package com.tagdeck
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,10 +10,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import com.audiotageditor.data.StorageHelper
-import com.audiotageditor.data.TagEngine
-import com.audiotageditor.theme.AudioTagEditorTheme
-import com.audiotageditor.theme.ThemeManager
+import com.tagdeck.data.StorageHelper
+import com.tagdeck.data.TagEngine
+import com.tagdeck.theme.AudioTagEditorTheme
+import com.tagdeck.theme.ThemeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     ThemeManager.init(applicationContext)
-    com.audiotageditor.data.SettingsManager.init(applicationContext)
+    com.tagdeck.data.SettingsManager.init(applicationContext)
     
     // Clean orphaned temp files in background on startup
     lifecycleScope.launch(Dispatchers.IO) {

@@ -1,4 +1,4 @@
-package com.audiotageditor
+package com.tagdeck
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -7,13 +7,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.audiotageditor.data.DefaultDataRepository
-import com.audiotageditor.ui.library.LibraryScreen
-import com.audiotageditor.ui.library.LibraryScreenViewModel
-import com.audiotageditor.ui.library.RenameScreen
-import com.audiotageditor.ui.editor.EditorScreen
-import com.audiotageditor.ui.editor.EditorScreenViewModel
-import com.audiotageditor.ui.settings.SettingsScreen
+import com.tagdeck.data.DataRepository
+import com.tagdeck.ui.library.LibraryScreen
+import com.tagdeck.ui.library.LibraryScreenViewModel
+import com.tagdeck.ui.library.RenameScreen
+import com.tagdeck.ui.editor.EditorScreen
+import com.tagdeck.ui.editor.EditorScreenViewModel
+import com.tagdeck.ui.settings.SettingsScreen
 
 @Composable
 fun MainNavigation() {

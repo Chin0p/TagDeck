@@ -1,4 +1,4 @@
-package com.audiotageditor.theme
+package com.tagdeck.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,10 +1,10 @@
-package com.audiotageditor.ui.settings
+package com.tagdeck.ui.settings
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
-import com.audiotageditor.data.SettingsManager
-import com.audiotageditor.theme.ThemeManager
-import com.audiotageditor.theme.ThemeMode
+import com.tagdeck.data.SettingsManager
+import com.tagdeck.theme.ThemeManager
+import com.tagdeck.theme.ThemeMode
 
 @Stable
 class SettingsScreenViewModel : ViewModel() {
