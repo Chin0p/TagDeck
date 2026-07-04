@@ -1,4 +1,4 @@
-package com.audiotageditor.data
+package com.tagdeck.data
 
 import android.content.Context
 import android.net.Uri
@@ -64,17 +64,16 @@ object TagEngine {
             var metadata: Metadata? = null
             var audioProps: AudioProperties? = null
             var pfd1: ParcelFileDescriptor? = null
-            var dupPfd: ParcelFileDescriptor? = null
-            var rawFd = -1
-            var success = false
+            var dupPfd1: ParcelFileDescriptor? = null
+            var rawFd1 = -1
+            var success1 = false
             try {
                 pfd1 = context.contentResolver.openFileDescriptor(uri, "r")
                 if (pfd1 != null) {
-                    dupPfd = pfd1.dup()
-                    rawFd = dupPfd.detachFd()
-                    metadata = TagLib.getMetadata(rawFd, false)
-                    audioProps = TagLib.getAudioProperties(rawFd, AudioPropertiesReadStyle.Fast)
-                    success = true
+                    dupPfd1 = pfd1.dup()
+                    rawFd1 = dupPfd1.detachFd()
+                    metadata = TagLib.getMetadata(rawFd1, false)
+                    success1 = true
                 }
             } catch (e: Throwable) {
                 Log.e(TAG, "Failed to get metadata in native layer", e)
@@ -85,13 +84,47 @@ object TagEngine {
                     // ignore
                 }
                 try {
-                    dupPfd?.close()
+                    dupPfd1?.close()
                 } catch (e: Exception) {
                     // ignore
                 }
-                if (!success && rawFd != -1) {
+                if (!success1 && rawFd1 != -1) {
                     try {
-                        ParcelFileDescriptor.adoptFd(rawFd).close()
+                        ParcelFileDescriptor.adoptFd(rawFd1).close()
+                    } catch (e: Exception) {
+                        // ignore
+                    }
+                }
+            }
+
+            var pfd2: ParcelFileDescriptor? = null
+            var dupPfd2: ParcelFileDescriptor? = null
+            var rawFd2 = -1
+            var success2 = false
+            try {
+                pfd2 = context.contentResolver.openFileDescriptor(uri, "r")
+                if (pfd2 != null) {
+                    dupPfd2 = pfd2.dup()
+                    rawFd2 = dupPfd2.detachFd()
+                    audioProps = TagLib.getAudioProperties(rawFd2, AudioPropertiesReadStyle.Fast)
+                    success2 = true
+                }
+            } catch (e: Throwable) {
+                Log.e(TAG, "Failed to get audio properties in native layer", e)
+            } finally {
+                try {
+                    pfd2?.close()
+                } catch (e: Exception) {
+                    // ignore
+                }
+                try {
+                    dupPfd2?.close()
+                } catch (e: Exception) {
+                    // ignore
+                }
+                if (!success2 && rawFd2 != -1) {
+                    try {
+                        ParcelFileDescriptor.adoptFd(rawFd2).close()
                     } catch (e: Exception) {
                         // ignore
                     }
@@ -121,23 +154,9 @@ object TagEngine {
             val discNumber = sanitizeUtf8(getFirstString("DISCNUMBER"))
             
             val rawDuration = audioProps?.length ?: 0
-            val durationSec: Int
-            val durationMs: Long
-
-            when {
-                rawDuration > 86400 -> { // Exceeds 24 hours in seconds; implicitly millisecond data
-                    durationSec = (rawDuration / 1000).toInt()
-                    durationMs = rawDuration.toLong()
-                }
-                rawDuration > 3600 && sizeBytes < 10_000_000 -> { // Mismatched ratio (small file size, high duration count)
-                    durationSec = (rawDuration / 1000).toInt()
-                    durationMs = rawDuration.toLong()
-                }
-                else -> {
-                    durationSec = rawDuration
-                    durationMs = rawDuration.toLong() * 1000L
-                }
-            }
+            val durationSec = (rawDuration.toLong() / 1000L).toInt()
+            val durationMs = rawDuration.toLong()
+            
             // Cap at a reasonable maximum sanity fallback (e.g., 10 hours)
             val finalDurationSec = minOf(durationSec, 36000)
             val finalDurationMs = minOf(durationMs, 36000000L)

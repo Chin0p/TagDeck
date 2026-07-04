@@ -1,4 +1,4 @@
-package com.audiotageditor.ui.library
+package com.tagdeck.ui.library
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,6 +53,9 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,6 +69,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -84,10 +90,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.audiotageditor.data.AudioMetadata
-import com.audiotageditor.data.SettingsManager
-import com.audiotageditor.theme.ThemeManager
-import com.audiotageditor.theme.ThemeMode
+import com.tagdeck.data.AudioMetadata
+import com.tagdeck.data.SettingsManager
+import com.tagdeck.theme.ThemeManager
+import com.tagdeck.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -211,32 +217,36 @@ fun LibraryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(
+                            enabled = selectedCount > 0,
                             onClick = { 
-                                onEditSelected(if (selectedCount > 0) selectedUris.toList() else files.map { it.uriString }) 
+                                onEditSelected(selectedUris.toList()) 
                             }
                         ) {
+                            val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
                                     imageVector = if (selectedCount == 1) Icons.Default.Edit else Icons.Default.AutoAwesome, 
                                     contentDescription = "Edit",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = tint
                                 )
-                                Text("Edit", color = MaterialTheme.colorScheme.primary)
+                                Text("Edit", color = tint)
                             }
                         }
                         
                         TextButton(
+                            enabled = selectedCount > 0,
                             onClick = { 
-                                onNavigateToRename(if (selectedCount > 0) selectedUris.toList() else files.map { it.uriString }) 
+                                onNavigateToRename(selectedUris.toList()) 
                             }
                         ) {
+                            val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
                                     imageVector = Icons.Default.DriveFileRenameOutline, 
                                     contentDescription = "Rename",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = tint
                                 )
-                                Text("Rename", color = MaterialTheme.colorScheme.primary)
+                                Text("Rename", color = tint)
                             }
                         }
                         
@@ -290,6 +300,91 @@ fun LibraryScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
+                val searchQueryState by viewModel.searchQuery.collectAsState()
+                val selectedFormatState by viewModel.selectedFormat.collectAsState()
+
+                if (files.isNotEmpty() || searchQueryState.isNotEmpty() || selectedFormatState != "All") {
+                    // M3 Search Bar
+                    TextField(
+                        value = searchQueryState,
+                        onValueChange = { viewModel.setSearchQuery(it) },
+                        placeholder = { Text("Search title, artist, or files...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                        trailingIcon = {
+                            if (searchQueryState.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Clear")
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        ),
+                        shape = RoundedCornerShape(28.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .height(52.dp)
+                    )
+
+                    // Horizontal Format Filters Row
+                    val formats = listOf("All", "MP3", "M4A", "FLAC", "WAV", "OGG")
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(formats) { format ->
+                            val isSelected = selectedFormatState == format
+                            val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                            val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(containerColor)
+                                    .clickable { viewModel.setSelectedFormat(format) }
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = contentColor,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = format,
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = contentColor
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 val shimmerTransition = rememberInfiniteTransition(label = "ShimmerTransition")
                 val shimmerAlpha by shimmerTransition.animateFloat(
                     initialValue = 0.3f,
@@ -350,166 +445,169 @@ fun LibraryScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AudioItemCard(
-        item: AudioMetadata,
-        isSelected: Boolean,
-        onClick: () -> Unit,
-        onLongClick: () -> Unit
+    item: AudioMetadata,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val selectedBorder = remember(primaryColor) { BorderStroke(1.5.dp, primaryColor) }
+    val defaultBorder = remember(outlineColor) { BorderStroke(1.dp, outlineColor) }
+    
+    val showAdvancedInfo by SettingsManager.showAdvancedInfo.collectAsState()
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        shape = RoundedCornerShape(12.dp),
+        border = if (isSelected) selectedBorder else defaultBorder,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+        )
     ) {
-        val primaryColor = MaterialTheme.colorScheme.primary
-        val outlineVariantColor = MaterialTheme.colorScheme.outlineVariant
-        val selectedBorder = remember(primaryColor) { BorderStroke(1.dp, primaryColor) }
-        val defaultBorder = remember(outlineVariantColor) { BorderStroke(1.dp, outlineVariantColor) }
-        
-        val showAdvancedInfo by SettingsManager.showAdvancedInfo.collectAsState()
-        
-        Card(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick
-                ),
-            shape = RoundedCornerShape(16.dp),
-            border = if (isSelected) selectedBorder else defaultBorder,
-            colors = CardDefaults.cardColors(
-                containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
-            )
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            // Left: Artwork thumbnail / vector placeholder
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                // Left: Artwork thumbnail / vector placeholder
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                    contentAlignment = Alignment.Center
+                Icon(
+                    imageVector = if (item.hasCoverArt) Icons.Default.Album else Icons.Default.MusicNote,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Center: Primary Metadata vertical stack
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 4.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = if (item.hasCoverArt) Icons.Default.Album else Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Center: Primary Metadata vertical stack
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 4.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = item.title.ifBlank { item.fileName },
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                textDirection = androidx.compose.ui.text.style.TextDirection.Content
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                        if (item.hasPendingChanges) {
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "STAGED",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    val artistAlbumText = remember(item.artist, item.album) {
-                        val artStr = item.artist.ifBlank { "Unknown Artist" }
-                        val albStr = item.album.ifBlank { "Unknown Album" }
-                        "$artStr • $albStr"
-                    }
-
                     Text(
-                        text = artistAlbumText,
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        text = item.title.ifBlank { item.fileName },
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
                             textDirection = androidx.compose.ui.text.style.TextDirection.Content
                         ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Technical Metadata Strip (Duration, Bitrate, Size, Format) at the bottom
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (showAdvancedInfo) {
-                            FormatBadge(format = item.cleanFormat)
+                    if (item.hasPendingChanges) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                        ) {
                             Text(
-                                text = "•",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                text = "STAGED",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
                         }
-                        Text(
-                            text = item.durationFormatted,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (showAdvancedInfo) {
-                            if (item.bitrate.isNotBlank() && item.bitrate != "Unknown kbps") {
-                                Text(
-                                    text = "•",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    } else if (item.hasSavedInSession) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(4.dp)
                                 )
+                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Saved",
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
                                 Text(
-                                    text = item.bitrate,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "SAVED",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
-                            Text(
-                                text = "•",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                            )
-                            Text(
-                                text = item.sizeFormatted,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.height(1.dp))
+
+                val artistAlbumText = remember(item.artist, item.album) {
+                    val artStr = item.artist.ifBlank { "Unknown Artist" }
+                    val albStr = item.album.ifBlank { "Unknown Album" }
+                    "$artStr • $albStr"
+                }
+
+                Text(
+                    text = artistAlbumText,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        textDirection = androidx.compose.ui.text.style.TextDirection.Content
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // High-density Metadata Badges (Genre, Year, Format)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = item.durationFormatted,
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (item.genre.isNotBlank()) {
+                        GenreBadge(genre = item.genre)
+                    }
+
+                    if (item.year.isNotBlank()) {
+                        YearBadge(year = item.year)
+                    }
+
+                    FormatBadge(format = item.cleanFormat)
                 }
             }
         }
     }
+}
 
 @Composable
 private fun FormatBadge(format: String) {
@@ -529,9 +627,62 @@ private fun FormatBadge(format: String) {
     ) {
         Text(
             text = format,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+private fun GenreBadge(genre: String) {
+    Box(
+        modifier = Modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = genre,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 60.dp)
+        )
+    }
+}
+
+@Composable
+private fun YearBadge(year: String) {
+    Box(
+        modifier = Modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .background(
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = year,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
         )
     }
 }

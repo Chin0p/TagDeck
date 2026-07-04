@@ -1,33 +1,19 @@
-import java.net.URLClassLoader
-import java.util.Properties
-import java.io.FileInputStream
-
-val localProperties = Properties().apply {
-    val localPropsFile = rootProject.file("local.properties")
-    if (localPropsFile.exists()) {
-        load(FileInputStream(localPropsFile))
-    }
-}
-
-fun secret(envKey: String, localKey: String, default: String = ""): String {
-    return System.getenv(envKey) ?: localProperties.getProperty(localKey) ?: default
-}
-
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.audiotageditor"
-    compileSdk = 37
+    namespace = "com.tagdeck"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.aistudio.audiotageditor.xkldmr"
+        applicationId = "com.tagdeck"
         minSdk = 24
-        targetSdk = 37
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -36,17 +22,17 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(secret("KEYSTORE_PATH", "KEYSTORE_PATH", "${rootDir}/keystore.jks"))
-            storePassword = secret("KEYSTORE_PASSWORD", "STORE_PASSWORD")
-            keyAlias = secret("KEY_ALIAS", "KEY_ALIAS", "upload")
-            keyPassword = secret("KEY_PASSWORD", "KEY_PASSWORD")
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: rootProject.file("keystore.jks").absolutePath)
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
     buildTypes {
         release {
             isCrunchPngs = false
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -58,10 +44,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-        }
+    kotlin {
+        jvmToolchain(21)
     }
 
     buildFeatures {
@@ -96,7 +80,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     "ksp"(libs.androidx.room.compiler)
-    implementation(libs.androidx.datastore.preferences) // Activated for saving local app settings
+    implementation(libs.androidx.datastore.preferences)
 
     // Audio Processing Engines
     implementation(libs.kyant0.taglib)

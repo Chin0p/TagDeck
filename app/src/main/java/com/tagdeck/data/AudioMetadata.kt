@@ -1,4 +1,4 @@
-package com.audiotageditor.data
+package com.tagdeck.data
 
 import androidx.compose.runtime.Immutable
 
@@ -25,7 +25,8 @@ data class AudioMetadata(
     val description: String = "",
     val composer: String = "",
     val discNumber: String = "",
-    val hasPendingChanges: Boolean = false
+    val hasPendingChanges: Boolean = false,
+    val hasSavedInSession: Boolean = false
 ) {
     val cleanFormat: String = format.substringAfterLast("/").substringAfterLast(".").uppercase().let {
         if (it.isBlank()) "AUDIO" else it

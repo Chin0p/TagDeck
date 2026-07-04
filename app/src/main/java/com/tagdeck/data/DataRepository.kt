@@ -1,4 +1,4 @@
-package com.audiotageditor.data
+package com.tagdeck.data
 
 import android.content.ContentUris
 import android.content.ContentValues
@@ -51,6 +51,7 @@ interface DataRepository {
     fun getPendingRenames(): Map<String, String>
     suspend fun commitPendingChanges(context: Context): Boolean
     fun clearPendingChanges()
+    fun clearSavedSessionUris()
     fun clearAllLoaded()
 
     suspend fun updateTags(
@@ -203,6 +204,8 @@ class DefaultDataRepository : DataRepository {
     private val _pendingRenames = MutableStateFlow<Map<String, String>>(emptyMap())
     override val pendingRenames: StateFlow<Map<String, String>> = _pendingRenames.asStateFlow()
 
+    private val _savedUrisThisSession = mutableSetOf<String>()
+
     private val _loadedFileUris = MutableStateFlow<List<Uri>>(emptyList())
     
     private var _selectedUrisToEdit = emptyList<String>()
@@ -260,10 +263,14 @@ class DefaultDataRepository : DataRepository {
                     } else {
                         meta.fileName
                     },
-                    hasPendingChanges = true
+                    hasPendingChanges = true,
+                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString)
                 )
             } else {
-                meta.copy(hasPendingChanges = false)
+                meta.copy(
+                    hasPendingChanges = false,
+                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString)
+                )
             }
         }
     }
@@ -381,6 +388,10 @@ class DefaultDataRepository : DataRepository {
         updateLoadedFiles()
     }
 
+    override fun clearSavedSessionUris() {
+        _savedUrisThisSession.clear()
+    }
+
     override fun clearAllLoaded() {
         _loadedFilesRaw.value = emptyList()
         _loadedFiles.value = emptyList()
@@ -388,6 +399,7 @@ class DefaultDataRepository : DataRepository {
         _currentFolderUri.value = null
         _pendingTagUpdates.value = emptyMap()
         _pendingRenames.value = emptyMap()
+        _savedUrisThisSession.clear()
         _selectedUrisToEdit = emptyList()
     }
 
@@ -428,6 +440,7 @@ class DefaultDataRepository : DataRepository {
                     )
                     if (result) {
                         anySuccess = true
+                        _savedUrisThisSession.add(uriStr)
                     }
                 }
             }
@@ -462,6 +475,7 @@ class DefaultDataRepository : DataRepository {
 
                 if (newUri != null) {
                     anySuccess = true
+                    _savedUrisThisSession.add(newUri.toString())
                     val idx = finalRenamedUris.indexOfFirst { it.toString() == uriStr }
                     if (idx != -1) {
                         finalRenamedUris[idx] = newUri

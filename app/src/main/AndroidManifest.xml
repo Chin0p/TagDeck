@@ -17,7 +17,7 @@
         android:theme="@style/Theme.MyApplication">
 
         <activity
-            android:name="com.audiotageditor.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MyApplication">
             <intent-filter>

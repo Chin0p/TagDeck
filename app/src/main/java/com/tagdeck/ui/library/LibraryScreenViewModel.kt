@@ -1,17 +1,18 @@
-package com.audiotageditor.ui.library
+package com.tagdeck.ui.library
 
 import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.audiotageditor.data.AudioMetadata
-import com.audiotageditor.data.DataRepository
-import com.audiotageditor.data.TagEngine
+import com.tagdeck.data.AudioMetadata
+import com.tagdeck.data.DataRepository
+import com.tagdeck.data.TagEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -24,12 +25,43 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
     private val _selectedUris = MutableStateFlow<Set<String>>(emptySet())
     val selectedUris = _selectedUris.asStateFlow()
 
-    val filteredFiles: StateFlow<List<AudioMetadata>> = repository.loadedFiles
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _selectedFormat = MutableStateFlow("All")
+    val selectedFormat = _selectedFormat.asStateFlow()
+
+    val filteredFiles: StateFlow<List<AudioMetadata>> = combine(
+        repository.loadedFiles,
+        _searchQuery,
+        _selectedFormat
+    ) { files, query, format ->
+        files.filter { item ->
+            val matchesQuery = query.isBlank() || 
+                    item.title.contains(query, ignoreCase = true) ||
+                    item.artist.contains(query, ignoreCase = true) ||
+                    item.album.contains(query, ignoreCase = true) ||
+                    item.fileName.contains(query, ignoreCase = true)
+            
+            val matchesFormat = format == "All" || 
+                    item.cleanFormat.equals(format, ignoreCase = true)
+            
+            matchesQuery && matchesFormat
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun setSelectedFormat(format: String) {
+        _selectedFormat.value = format
+    }
 
     fun loadFolder(context: Context, treeUri: Uri) {
         viewModelScope.launch {
             _selectedUris.value = emptySet()
+            repository.clearSavedSessionUris()
             repository.loadFolder(context, treeUri)
         }
     }
@@ -37,6 +69,7 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
     fun loadFiles(context: Context, uris: List<Uri>) {
         viewModelScope.launch {
             _selectedUris.value = emptySet()
+            repository.clearSavedSessionUris()
             repository.loadFiles(context, uris)
         }
     }
@@ -93,7 +126,7 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
             for (uriStr in selected) {
                 val uri = Uri.parse(uriStr)
                 val metadata = TagEngine.readMetadata(context, uri) ?: continue
-                val parsed = com.audiotageditor.data.SettingsManager.parseMetadataFromFilename(metadata.fileName, pattern)
+                val parsed = com.tagdeck.data.SettingsManager.parseMetadataFromFilename(metadata.fileName, pattern)
                 if (parsed.isNotEmpty()) {
                     repository.updateTags(
                         context = context,

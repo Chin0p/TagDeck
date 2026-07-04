@@ -1,4 +1,4 @@
-package com.audiotageditor.ui.editor
+package com.tagdeck.ui.editor
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -12,6 +12,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,8 +77,8 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.audiotageditor.data.AudioMetadata
-import com.audiotageditor.data.SettingsManager
+import com.tagdeck.data.AudioMetadata
+import com.tagdeck.data.SettingsManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -556,14 +559,17 @@ fun EditorTextField(
             )
             if (isBatch && showRightChips) {
                 Row(
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    modifier = Modifier
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     val blankSelected = currentAction == "BLANK"
                     Box(
                         modifier = Modifier
                             .clickable { onActionChange(if (blankSelected) "KEEP" else "BLANK") }
                             .background(if (blankSelected) MaterialTheme.colorScheme.errorContainer else Color.Transparent)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .padding(horizontal = 8.dp, vertical = 5.dp)
                     ) {
                         Text(
                             text = "Blank",
@@ -572,11 +578,12 @@ fun EditorTextField(
                             color = if (blankSelected) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    androidx.compose.material3.VerticalDivider(modifier = Modifier.height(20.dp).align(Alignment.CenterVertically), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     Box(
                         modifier = Modifier
                             .clickable { onActionChange(if (currentAction == "CHOOSE") "KEEP" else "CHOOSE") }
                             .background(if (currentAction == "CHOOSE") MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .padding(horizontal = 8.dp, vertical = 5.dp)
                     ) {
                         Text(
                             text = "Choose",
@@ -626,7 +633,7 @@ fun EditorTextField(
         TextField(
             value = if (isBatch && currentAction != "CHOOSE") "" else value,
             onValueChange = handleChange,
-            enabled = !isBatch || currentAction == "CHOOSE",
+            enabled = !isBatch || !showRightChips || currentAction == "CHOOSE",
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
@@ -645,24 +652,23 @@ fun EditorTextField(
             singleLine = true
         )
 
-        if (isBatch && showBottomStrip && currentAction == "CHOOSE" && sharedValues.isNotEmpty()) {
-            androidx.compose.foundation.layout.FlowRow(
+        if (isBatch && showBottomStrip && (!showRightChips || currentAction == "CHOOSE") && sharedValues.isNotEmpty()) {
+            androidx.compose.foundation.lazy.LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                sharedValues.forEach { suggestion ->
+                items(sharedValues) { suggestion ->
                     val isSelected = suggestion == value
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
                             .clickable { handleChange(suggestion) }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = suggestion.ifBlank { "(Empty)" },
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                         )
                     }
