@@ -37,7 +37,8 @@ data class EditorUiState(
     val mixedFields: Set<String> = emptySet(),
     val mixedFieldsAction: Map<String, String> = emptyMap(), // "KEEP", "BLANK", "OVERWRITE"
     val albumArtBytes: ByteArray? = null,
-    val coverImageBitmap: ImageBitmap? = null
+    val coverImageBitmap: ImageBitmap? = null,
+    val filesWithCoverArtCount: Int = 0
 )
 
 @Stable
@@ -167,7 +168,8 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
                 mixedFields = emptySet(),
                 mixedFieldsAction = emptyMap(),
                 albumArtBytes = null,
-                coverImageBitmap = null
+                coverImageBitmap = null,
+                filesWithCoverArtCount = if (file.hasCoverArt) 1 else 0
             )
 
             // Load album art bytes in background and decode asynchronously
@@ -220,6 +222,8 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
             val discNumbers = filesToEdit.map { it.discNumber }.toSet()
             val finalDiscNumber = if (discNumbers.size == 1) discNumbers.first() else { mixed.add("discNumber"); mixedActions["discNumber"] = "KEEP"; "" }
 
+            val filesWithCoverArtCount = filesToEdit.count { it.hasCoverArt }
+
             _uiState.value = EditorUiState(
                 selectedFiles = filesToEdit,
                 isBatchEdit = true,
@@ -238,7 +242,8 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
                 mixedFields = mixed,
                 mixedFieldsAction = mixedActions,
                 albumArtBytes = null,
-                coverImageBitmap = null
+                coverImageBitmap = null,
+                filesWithCoverArtCount = filesWithCoverArtCount
             )
         }
     }

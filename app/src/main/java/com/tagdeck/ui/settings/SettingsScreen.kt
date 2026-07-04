@@ -208,6 +208,7 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = useDynamicColor,
                             onCheckedChange = { ThemeManager.setUseDynamicColor(it) }
@@ -280,6 +281,7 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = showAdvancedInfo,
                             onCheckedChange = { SettingsManager.setShowAdvancedInfo(it) }
@@ -341,12 +343,13 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Display KEEP / OVERWRITE / BLANK chips on the right of fields in batch mode.",
+                                    text = "Display Blank / Choose toggle chips on the right of mixed fields in batch mode.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = showRightChips,
                             onCheckedChange = { SettingsManager.setShowRightChips(it) }
@@ -384,6 +387,7 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = showBottomStrip,
                             onCheckedChange = { SettingsManager.setShowBottomStrip(it) }

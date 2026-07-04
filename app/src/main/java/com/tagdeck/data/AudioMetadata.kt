@@ -26,7 +26,8 @@ data class AudioMetadata(
     val composer: String = "",
     val discNumber: String = "",
     val hasPendingChanges: Boolean = false,
-    val hasSavedInSession: Boolean = false
+    val hasSavedInSession: Boolean = false,
+    val isSaving: Boolean = false
 ) {
     val cleanFormat: String = format.substringAfterLast("/").substringAfterLast(".").uppercase().let {
         if (it.isBlank()) "AUDIO" else it

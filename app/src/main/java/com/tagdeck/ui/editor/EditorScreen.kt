@@ -229,7 +229,8 @@ fun EditorFormContent(
     val discNumber = uiState.discNumber
     val removeCover = uiState.removeCover
 
-    val showRemoveCoverOption = isBatch || uiState.albumArtBytes != null
+    val filesWithCoverArtCount = uiState.filesWithCoverArtCount
+    val showRemoveCoverOption = (isBatch && filesWithCoverArtCount > 0) || (!isBatch && uiState.albumArtBytes != null)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -295,7 +296,7 @@ fun EditorFormContent(
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                         Text(
-                                            text = if (isBatch) "Strip cover photos from all selected audio files." else "Strip cover photo from this audio file.",
+                                            text = if (isBatch) "$filesWithCoverArtCount of ${files.size} selected files have cover art." else "Strip cover photo from this audio file.",
                                             fontSize = 12.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -336,8 +337,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateArtist(it) },
                             label = "Artist",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("artist"),
                             sharedValues = if (isBatch) files.map { it.artist }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["artist"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["artist"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("artist", action) }
                         )
 
@@ -347,8 +349,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateAlbum(it) },
                             label = "Album",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("album"),
                             sharedValues = if (isBatch) files.map { it.album }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["album"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["album"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("album", action) }
                         )
 
@@ -358,8 +361,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateAlbumArtist(it) },
                             label = "Album Artist",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("albumArtist"),
                             sharedValues = if (isBatch) files.map { it.albumArtist }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["albumArtist"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["albumArtist"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("albumArtist", action) }
                         )
 
@@ -369,8 +373,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateGenre(it) },
                             label = "Genre",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("genre"),
                             sharedValues = if (isBatch) files.map { it.genre }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["genre"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["genre"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("genre", action) }
                         )
 
@@ -380,8 +385,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateYear(it) },
                             label = "Year",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("year"),
                             sharedValues = if (isBatch) files.map { it.year }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["year"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["year"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("year", action) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
@@ -405,8 +411,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateDiscNumber(it) },
                             label = "Disc Number",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("discNumber"),
                             sharedValues = if (isBatch) files.map { it.discNumber }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["discNumber"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["discNumber"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("discNumber", action) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
@@ -417,8 +424,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateComposer(it) },
                             label = "Composer",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("composer"),
                             sharedValues = if (isBatch) files.map { it.composer }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["composer"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["composer"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("composer", action) }
                         )
 
@@ -428,8 +436,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateComment(it) },
                             label = "Comment",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("comment"),
                             sharedValues = if (isBatch) files.map { it.comment }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["comment"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["comment"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("comment", action) }
                         )
 
@@ -439,8 +448,9 @@ fun EditorFormContent(
                             onValueChange = { viewModel.updateDescription(it) },
                             label = "Description",
                             isBatch = isBatch,
+                            isMixedField = mixedFields.contains("description"),
                             sharedValues = if (isBatch) files.map { it.description }.distinct().filter { it.isNotBlank() } else emptyList(),
-                            currentAction = mixedFieldsAction["description"] ?: if (isBatch) "KEEP" else "CHOOSE",
+                            currentAction = mixedFieldsAction["description"] ?: "CHOOSE",
                             onActionChange = { action -> viewModel.setMixedFieldAction("description", action) }
                         )
 
@@ -532,6 +542,7 @@ fun EditorTextField(
     onValueChange: (String) -> Unit,
     label: String,
     isBatch: Boolean,
+    isMixedField: Boolean = false,
     sharedValues: List<String> = emptyList(),
     currentAction: String, // "KEEP", "BLANK", "CHOOSE"
     onActionChange: (String) -> Unit,
@@ -555,7 +566,7 @@ fun EditorTextField(
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            if (isBatch && showRightChips) {
+            if (isMixedField && showRightChips) {
                 Row(
                     modifier = Modifier
                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
@@ -567,25 +578,25 @@ fun EditorTextField(
                         modifier = Modifier
                             .clickable { onActionChange(if (blankSelected) "KEEP" else "BLANK") }
                             .background(if (blankSelected) MaterialTheme.colorScheme.errorContainer else Color.Transparent)
-                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = "Blank",
-                            fontSize = 12.sp,
+                            fontSize = 10.sp,
                             fontWeight = if (blankSelected) FontWeight.Bold else FontWeight.Medium,
                             color = if (blankSelected) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    androidx.compose.material3.VerticalDivider(modifier = Modifier.height(20.dp).align(Alignment.CenterVertically), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                    androidx.compose.material3.VerticalDivider(modifier = Modifier.height(14.dp).align(Alignment.CenterVertically), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     Box(
                         modifier = Modifier
                             .clickable { onActionChange(if (currentAction == "CHOOSE") "KEEP" else "CHOOSE") }
                             .background(if (currentAction == "CHOOSE") MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = "Choose",
-                            fontSize = 12.sp,
+                            fontSize = 10.sp,
                             fontWeight = if (currentAction == "CHOOSE") FontWeight.Bold else FontWeight.Medium,
                             color = if (currentAction == "CHOOSE") MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )

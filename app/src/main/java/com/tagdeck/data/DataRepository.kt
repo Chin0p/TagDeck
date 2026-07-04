@@ -204,6 +204,8 @@ class DefaultDataRepository : DataRepository {
     private val _pendingRenames = MutableStateFlow<Map<String, String>>(emptyMap())
     override val pendingRenames: StateFlow<Map<String, String>> = _pendingRenames.asStateFlow()
 
+    private val _savingUris = MutableStateFlow<Set<String>>(emptySet())
+
     private val _savedUrisThisSession = mutableSetOf<String>()
 
     private val _loadedFileUris = MutableStateFlow<List<Uri>>(emptyList())
@@ -245,6 +247,7 @@ class DefaultDataRepository : DataRepository {
             val pendingTag = tags[meta.uriString]
             val pendingRename = renames[meta.uriString]
             
+            val isSavingNow = _savingUris.value.contains(meta.uriString)
             if (pendingTag != null || pendingRename != null) {
                 meta.copy(
                     title = pendingTag?.title ?: meta.title,
@@ -264,12 +267,14 @@ class DefaultDataRepository : DataRepository {
                         meta.fileName
                     },
                     hasPendingChanges = true,
-                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString)
+                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString),
+                    isSaving = isSavingNow
                 )
             } else {
                 meta.copy(
                     hasPendingChanges = false,
-                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString)
+                    hasSavedInSession = _savedUrisThisSession.contains(meta.uriString),
+                    isSaving = isSavingNow
                 )
             }
         }
@@ -403,8 +408,32 @@ class DefaultDataRepository : DataRepository {
         _selectedUrisToEdit = emptyList()
     }
 
+    private suspend fun silentReload(context: Context) {
+        val folderUriStr = _currentFolderUri.value ?: return
+        withContext(Dispatchers.IO) {
+            try {
+                val uris = if (folderUriStr == "Selected Files") {
+                    _loadedFileUris.value
+                } else {
+                    StorageHelper.listAudioFiles(context, Uri.parse(folderUriStr)).also {
+                        _loadedFileUris.value = it
+                    }
+                }
+                val metadataList = mutableListOf<AudioMetadata>()
+                for (uri in uris) {
+                    val meta = TagEngine.readMetadata(context, uri)
+                    if (meta != null) metadataList.add(meta)
+                }
+                metadataList.sortBy { it.fileName.lowercase(java.util.Locale.US) }
+                _loadedFilesRaw.value = metadataList
+                updateLoadedFiles()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in silent reload", e)
+            }
+        }
+    }
+
     override suspend fun commitPendingChanges(context: Context): Boolean {
-        _isLoading.value = true
         return withContext(Dispatchers.IO) {
             var anySuccess = false
             val tags = _pendingTagUpdates.value
@@ -412,9 +441,11 @@ class DefaultDataRepository : DataRepository {
             
             val allUris = (tags.keys + renames.keys).distinct()
             if (allUris.isEmpty()) {
-                _isLoading.value = false
                 return@withContext false
             }
+
+            _savingUris.value = _savingUris.value + allUris
+            updateLoadedFiles()
 
             for (uriStr in allUris) {
                 val uri = Uri.parse(uriStr)
@@ -493,17 +524,10 @@ class DefaultDataRepository : DataRepository {
                 delay(600)
             }
 
-            val folderUriStr = _currentFolderUri.value
-            if (folderUriStr != null) {
-                if (folderUriStr == "Selected Files") {
-                    loadFiles(context, finalRenamedUris)
-                } else {
-                    val folderUri = Uri.parse(folderUriStr)
-                    loadFolder(context, folderUri)
-                }
-            }
+            silentReload(context)
+            _savingUris.value = _savingUris.value - allUris.toSet()
+            updateLoadedFiles()
 
-            _isLoading.value = false
             anySuccess
         }
     }

@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Edit
@@ -61,7 +62,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -115,6 +118,37 @@ fun LibraryScreen(
     val pendingRenames by viewModel.pendingRenames.collectAsState()
     val hasPending = remember(pendingTags, pendingRenames) {
         pendingTags.isNotEmpty() || pendingRenames.isNotEmpty()
+    }
+    var showClearConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showClearConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmDialog = false },
+            title = { Text("Close this session?") },
+            text = { 
+                if (hasPending) {
+                    Text("You have staged changes that haven't been written to disk yet — closing now will discard them.")
+                } else {
+                    Text("Are you sure you want to close this session and return to the main screen?")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearConfirmDialog = false
+                        viewModel.clearAllLoaded()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Close Session")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     // Launcher for individual audio files selection
@@ -186,10 +220,10 @@ fun LibraryScreen(
 
                     // Tapping this resets the app to the initial Import screen
                     if (files.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.clearAllLoaded() }) {
+                        IconButton(onClick = { showClearConfirmDialog = true }) {
                             Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear All Files",
+                                imageVector = Icons.Default.RestartAlt,
+                                contentDescription = "Close Session",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -519,7 +553,14 @@ fun AudioItemCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (item.hasPendingChanges) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (item.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else if (item.hasPendingChanges) {
                         Box(
                             modifier = Modifier
                                 .background(
@@ -539,7 +580,7 @@ fun AudioItemCard(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    color = Color(0xFF4CAF50),
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 5.dp, vertical = 1.dp)
@@ -548,7 +589,7 @@ fun AudioItemCard(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Saved",
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    tint = Color.White,
                                     modifier = Modifier.size(10.dp)
                                 )
                                 Spacer(modifier = Modifier.width(2.dp))
@@ -556,7 +597,7 @@ fun AudioItemCard(
                                     text = "SAVED",
                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = Color.White
                                 )
                             }
                         }
@@ -593,6 +634,23 @@ fun AudioItemCard(
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (showAdvancedInfo) {
+                        if (item.bitrate.isNotBlank()) {
+                            Text(
+                                text = item.bitrate,
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (item.sampleRate.isNotBlank()) {
+                            Text(
+                                text = item.sampleRate,
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
 
                     if (item.genre.isNotBlank()) {
                         GenreBadge(genre = item.genre)
