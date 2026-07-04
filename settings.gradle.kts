@@ -25,6 +25,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "audiotageditor-android"
+rootProject.name = "tagdeck-android"
 
 include(":app")
