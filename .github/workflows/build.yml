@@ -38,7 +38,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease "-Dorg.gradle.java.home=$JAVA_HOME"
+        run: ./gradlew assembleRelease
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
