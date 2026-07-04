@@ -47,7 +47,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 
 # TagLib
-kyant0-taglib = "com.github.kyant0:taglib:1.0.0"
+implementation("io.github.kyant0:taglib:1.0.6")
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
