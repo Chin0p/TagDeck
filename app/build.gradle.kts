@@ -1,4 +1,17 @@
 import java.net.URLClassLoader
+import java.util.Properties
+import java.io.FileInputStream
+
+val localProperties = Properties().apply {
+    val localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        load(FileInputStream(localPropsFile))
+    }
+}
+
+fun secret(envKey: String, localKey: String, default: String = ""): String {
+    return System.getenv(envKey) ?: localProperties.getProperty(localKey) ?: default
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -23,11 +36,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/keystore.jks"
-            storeFile = file(keystorePath)
-            storePassword = "pass347685"
-            keyAlias = "upload"
-            keyPassword = "pass347685"
+            storeFile = file(secret("KEYSTORE_PATH", "KEYSTORE_PATH", "${rootDir}/keystore.jks"))
+            storePassword = secret("KEYSTORE_PASSWORD", "STORE_PASSWORD")
+            keyAlias = secret("KEY_ALIAS", "KEY_ALIAS", "upload")
+            keyPassword = secret("KEY_PASSWORD", "KEY_PASSWORD")
         }
     }
 
