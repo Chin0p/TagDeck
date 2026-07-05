@@ -18,7 +18,8 @@ import com.tagdeck.ui.settings.SettingsScreen
 
 @Composable
 fun MainNavigation() {
-    val repository = remember { DefaultDataRepository() }
+    val appViewModel: AppViewModel = viewModel()
+    val repository = appViewModel.repository
     val navController = rememberNavController()
 
     val libraryViewModel: LibraryScreenViewModel = viewModel { LibraryScreenViewModel(repository) }

@@ -539,8 +539,9 @@ fun AudioItemCard(
                     .padding(end = 4.dp)
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = item.title.ifBlank { item.fileName },
@@ -553,7 +554,6 @@ fun AudioItemCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
                     if (item.isSaving) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),

@@ -38,7 +38,8 @@ data class EditorUiState(
     val mixedFieldsAction: Map<String, String> = emptyMap(), // "KEEP", "BLANK", "OVERWRITE"
     val albumArtBytes: ByteArray? = null,
     val coverImageBitmap: ImageBitmap? = null,
-    val filesWithCoverArtCount: Int = 0
+    val filesWithCoverArtCount: Int = 0,
+    val isDirty: Boolean = false
 )
 
 @Stable
@@ -48,13 +49,13 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
     val uiState = _uiState.asStateFlow()
 
     // Public state modifiers
-    fun updateTitle(value: String) { _uiState.value = _uiState.value.copy(title = value) }
+    fun updateTitle(value: String) { _uiState.value = _uiState.value.copy(title = value, isDirty = true) }
     
     fun updateArtist(value: String) { 
         val current = _uiState.value
         _uiState.value = current.copy(
             artist = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("artist" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("artist" to "CHOOSE"), isDirty = true
         ) 
     }
     
@@ -62,7 +63,7 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             album = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("album" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("album" to "CHOOSE"), isDirty = true
         ) 
     }
     
@@ -70,7 +71,7 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             year = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("year" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("year" to "CHOOSE"), isDirty = true
         ) 
     }
     
@@ -78,17 +79,17 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             genre = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("genre" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("genre" to "CHOOSE"), isDirty = true
         ) 
     }
     
-    fun updateTrack(value: String) { _uiState.value = _uiState.value.copy(track = value) }
+    fun updateTrack(value: String) { _uiState.value = _uiState.value.copy(track = value, isDirty = true) }
     
     fun updateAlbumArtist(value: String) { 
         val current = _uiState.value
         _uiState.value = current.copy(
             albumArtist = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("albumArtist" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("albumArtist" to "CHOOSE"), isDirty = true
         ) 
     }
 
@@ -96,7 +97,7 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             comment = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("comment" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("comment" to "CHOOSE"), isDirty = true
         ) 
     }
 
@@ -104,7 +105,7 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             description = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("description" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("description" to "CHOOSE"), isDirty = true
         ) 
     }
 
@@ -112,7 +113,7 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             composer = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("composer" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("composer" to "CHOOSE"), isDirty = true
         ) 
     }
 
@@ -120,16 +121,16 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
         val current = _uiState.value
         _uiState.value = current.copy(
             discNumber = value,
-            mixedFieldsAction = current.mixedFieldsAction + ("discNumber" to "CHOOSE")
+            mixedFieldsAction = current.mixedFieldsAction + ("discNumber" to "CHOOSE"), isDirty = true
         ) 
     }
     
-    fun updateRemoveCover(value: Boolean) { _uiState.value = _uiState.value.copy(removeCover = value) }
+    fun updateRemoveCover(value: Boolean) { _uiState.value = _uiState.value.copy(removeCover = value, isDirty = true) }
 
     fun setMixedFieldAction(field: String, action: String) {
         val current = _uiState.value
         _uiState.value = current.copy(
-            mixedFieldsAction = current.mixedFieldsAction + (field to action),
+            mixedFieldsAction = current.mixedFieldsAction + (field to action), isDirty = true,
             artist = if (field == "artist" && action != "CHOOSE") "" else current.artist,
             album = if (field == "album" && action != "CHOOSE") "" else current.album,
             albumArtist = if (field == "albumArtist" && action != "CHOOSE") "" else current.albumArtist,

@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -63,6 +65,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -96,6 +100,7 @@ fun EditorScreen(
     val saveSuccess = uiState.saveSuccess
     val mixedFields = uiState.mixedFields
     val mixedFieldsAction = uiState.mixedFieldsAction
+    val isDirty = uiState.isDirty
 
     // Load files initially
     LaunchedEffect(selectedUris) {
@@ -143,6 +148,7 @@ fun EditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -154,7 +160,7 @@ fun EditorScreen(
                 )
                 Button(
                     onClick = { viewModel.saveChanges(context) },
-                    enabled = !isLoading && files.isNotEmpty(),
+                    enabled = !isLoading && files.isNotEmpty() && isDirty,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
@@ -192,8 +198,24 @@ fun EditorScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             if (files.isEmpty()) {
+                var timedOut by remember { mutableStateOf(false) }
+                LaunchedEffect(selectedUris) {
+                    timedOut = false
+                    kotlinx.coroutines.delay(6000)
+                    timedOut = true
+                }
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    if (timedOut) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Couldn't load the selected files.", color = MaterialTheme.colorScheme.onSurface)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(onClick = onNavigateBack) { Text("Go Back") }
+                        }
+                    } else {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             } else {
                 EditorFormContent(
@@ -608,7 +630,8 @@ fun EditorTextField(
         val placeholderText = when {
             isBatch && currentAction == "KEEP" -> "Keep existing values"
             isBatch && currentAction == "BLANK" -> "Field will be cleared"
-            isBatch && currentAction == "CHOOSE" -> "Enter custom value or select below"
+            isBatch && currentAction == "CHOOSE" && sharedValues.isNotEmpty() -> "Enter custom value or select below"
+            isBatch && currentAction == "CHOOSE" -> "Enter value"
             else -> "Enter $label"
         }
 
@@ -621,7 +644,8 @@ fun EditorTextField(
             }
         }
 
-        val textStyle = remember { androidx.compose.ui.text.TextStyle(textDirection = TextDirection.Content) }
+        val bodyLarge = MaterialTheme.typography.bodyLarge
+        val textStyle = remember(bodyLarge) { bodyLarge.copy(textDirection = TextDirection.Content) }
 
         val surfaceContainerHigh = MaterialTheme.colorScheme.surfaceContainerHigh
         val surfaceContainerLow = MaterialTheme.colorScheme.surfaceContainerLow
@@ -673,11 +697,11 @@ fun EditorTextField(
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
                             .clickable { handleChange(suggestion) }
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = suggestion.ifBlank { "(Empty)" },
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                         )
                     }

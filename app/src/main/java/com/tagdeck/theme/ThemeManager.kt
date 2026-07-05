@@ -24,7 +24,7 @@ object ThemeManager {
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
-    private val _useDynamicColor = MutableStateFlow(true)
+    private val _useDynamicColor = MutableStateFlow(false)
     val useDynamicColor: StateFlow<Boolean> = _useDynamicColor.asStateFlow()
 
     fun init(context: Context) {
@@ -40,7 +40,7 @@ object ThemeManager {
                 ThemeMode.SYSTEM
             }
 
-            _useDynamicColor.value = sharedPrefs.getBoolean(KEY_DYNAMIC_COLOR, true)
+            _useDynamicColor.value = sharedPrefs.getBoolean(KEY_DYNAMIC_COLOR, false)
         }
     }
 

@@ -43,8 +43,29 @@ object TagEngine {
         }
     }
 
+    private fun looksLikeFlattenedUtf8(input: String): Boolean {
+        if (input.any { it.code > 255 }) return false
+        var i = 0
+        while (i < input.length) {
+            val c = input[i].code
+            when {
+                c in 0xC2..0xDF -> {
+                    if (i + 1 >= input.length || input[i + 1].code !in 0x80..0xBF) return false
+                    i += 2
+                }
+                c in 0xE0..0xEF -> {
+                    if (i + 2 >= input.length || input[i + 1].code !in 0x80..0xBF || input[i + 2].code !in 0x80..0xBF) return false
+                    i += 3
+                }
+                c < 0x80 -> i += 1
+                else -> return false
+            }
+        }
+        return true
+    }
+
     private fun sanitizeUtf8(input: String): String {
-        if (input.any { it.code > 255 }) {
+        if (!looksLikeFlattenedUtf8(input)) {
             return input
         }
         return try {
@@ -72,7 +93,7 @@ object TagEngine {
                 if (pfd1 != null) {
                     dupPfd1 = pfd1.dup()
                     rawFd1 = dupPfd1.detachFd()
-                    metadata = TagLib.getMetadata(rawFd1, false)
+                    metadata = TagLib.getMetadata(rawFd1, true)
                     success1 = true
                 }
             } catch (e: Throwable) {
@@ -141,6 +162,9 @@ object TagEngine {
                 return propertyMap[key]?.firstOrNull() ?: ""
             }
             
+            val rawTitleDebug = getFirstString("TITLE")
+            Log.d(TAG, "RAW_TITLE_CODEPOINTS uri=$uri : " + rawTitleDebug.map { it.code.toString(16) }.joinToString(","))
+
             val title = sanitizeUtf8(getFirstString("TITLE"))
             val artist = sanitizeUtf8(getFirstString("ARTIST"))
             val album = sanitizeUtf8(getFirstString("ALBUM"))
@@ -169,7 +193,7 @@ object TagEngine {
             val sampleRateVal = audioProps?.sampleRate ?: 0
             val sampleRateStr = if (sampleRateVal > 0) String.format(Locale.US, "%.1f kHz", sampleRateVal / 1000.0) else "Unknown kHz"
             
-            val hasCover = false
+            val hasCover = metadata?.pictures?.isNotEmpty() == true
             
             return AudioMetadata(
                 uriString = uri.toString(),
