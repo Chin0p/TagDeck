@@ -270,7 +270,7 @@ fun EditorFormContent(
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
                 )
-        } else if (!isBatch) {
+        } else {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -279,12 +279,29 @@ fun EditorFormContent(
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = "No Cover Art",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(64.dp)
-                    )
+                    if (isBatch) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = "Mixed Cover Art",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "$filesWithCoverArtCount of ${files.size} files have cover art",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "No Cover Art",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(64.dp)
+                        )
+                    }
                 }
         }
 
@@ -685,7 +702,7 @@ fun EditorTextField(
             singleLine = true
         )
 
-        if (isBatch && showBottomStrip && (!showRightChips || currentAction == "CHOOSE") && sharedValues.isNotEmpty()) {
+        if (isBatch && isMixedField && showBottomStrip && (!showRightChips || currentAction == "CHOOSE") && sharedValues.isNotEmpty()) {
             androidx.compose.foundation.lazy.LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

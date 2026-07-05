@@ -45,23 +45,33 @@ object TagEngine {
 
     private fun looksLikeFlattenedUtf8(input: String): Boolean {
         if (input.any { it.code > 255 }) return false
+        var validSequenceCount = 0
         var i = 0
         while (i < input.length) {
             val c = input[i].code
             when {
                 c in 0xC2..0xDF -> {
                     if (i + 1 >= input.length || input[i + 1].code !in 0x80..0xBF) return false
+                    validSequenceCount++
                     i += 2
                 }
                 c in 0xE0..0xEF -> {
                     if (i + 2 >= input.length || input[i + 1].code !in 0x80..0xBF || input[i + 2].code !in 0x80..0xBF) return false
+                    validSequenceCount++
                     i += 3
                 }
                 c < 0x80 -> i += 1
+                // Windows-1252-only punctuation (smart quotes, dashes, ellipsis) that
+                // ISO-8859-1 has no printable glyph for — skip it rather than treating
+                // the whole field as unrecoverable.
+                c in 0x80..0x9F -> i += 1
                 else -> return false
             }
         }
-        return true
+        // Require at least one real multi-byte sequence, otherwise this is plain
+        // ASCII/Latin-1 text that happens to contain a stray punctuation byte and
+        // should not be run through the Latin-1 -> UTF-8 reinterpretation at all.
+        return validSequenceCount > 0
     }
 
     private fun sanitizeUtf8(input: String): String {

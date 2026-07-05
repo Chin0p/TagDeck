@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,6 +31,10 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
 
     private val _selectedFormat = MutableStateFlow("All")
     val selectedFormat = _selectedFormat.asStateFlow()
+
+    val hasAnyLoadedFiles: StateFlow<Boolean> = repository.loadedFiles
+        .map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val filteredFiles: StateFlow<List<AudioMetadata>> = combine(
         repository.loadedFiles,

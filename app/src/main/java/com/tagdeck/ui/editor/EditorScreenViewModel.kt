@@ -196,32 +196,32 @@ class EditorScreenViewModel(private val repository: DataRepository) : ViewModel(
             val mixed = mutableSetOf<String>()
             val mixedActions = mutableMapOf<String, String>()
             
-            val artists = filesToEdit.map { it.artist }.toSet()
-            val finalArtist = if (artists.size == 1) artists.first() else { mixed.add("artist"); mixedActions["artist"] = "KEEP"; "" }
+            val artistValues = filesToEdit.map { it.artist }.filter { it.isNotBlank() }.distinct()
+            val finalArtist = if (artistValues.size <= 1) artistValues.firstOrNull() ?: "" else { mixed.add("artist"); mixedActions["artist"] = "KEEP"; "" }
 
-            val albums = filesToEdit.map { it.album }.toSet()
-            val finalAlbum = if (albums.size == 1) albums.first() else { mixed.add("album"); mixedActions["album"] = "KEEP"; "" }
+            val albumValues = filesToEdit.map { it.album }.filter { it.isNotBlank() }.distinct()
+            val finalAlbum = if (albumValues.size <= 1) albumValues.firstOrNull() ?: "" else { mixed.add("album"); mixedActions["album"] = "KEEP"; "" }
 
-            val years = filesToEdit.map { it.year }.toSet()
-            val finalYear = if (years.size == 1) years.first() else { mixed.add("year"); mixedActions["year"] = "KEEP"; "" }
+            val yearValues = filesToEdit.map { it.year }.filter { it.isNotBlank() }.distinct()
+            val finalYear = if (yearValues.size <= 1) yearValues.firstOrNull() ?: "" else { mixed.add("year"); mixedActions["year"] = "KEEP"; "" }
 
-            val genres = filesToEdit.map { it.genre }.toSet()
-            val finalGenre = if (genres.size == 1) genres.first() else { mixed.add("genre"); mixedActions["genre"] = "KEEP"; "" }
+            val genreValues = filesToEdit.map { it.genre }.filter { it.isNotBlank() }.distinct()
+            val finalGenre = if (genreValues.size <= 1) genreValues.firstOrNull() ?: "" else { mixed.add("genre"); mixedActions["genre"] = "KEEP"; "" }
 
-            val albumArtists = filesToEdit.map { it.albumArtist }.toSet()
-            val finalAlbumArtist = if (albumArtists.size == 1) albumArtists.first() else { mixed.add("albumArtist"); mixedActions["albumArtist"] = "KEEP"; "" }
+            val albumArtistValues = filesToEdit.map { it.albumArtist }.filter { it.isNotBlank() }.distinct()
+            val finalAlbumArtist = if (albumArtistValues.size <= 1) albumArtistValues.firstOrNull() ?: "" else { mixed.add("albumArtist"); mixedActions["albumArtist"] = "KEEP"; "" }
 
-            val comments = filesToEdit.map { it.comment }.toSet()
-            val finalComment = if (comments.size == 1) comments.first() else { mixed.add("comment"); mixedActions["comment"] = "KEEP"; "" }
+            val commentValues = filesToEdit.map { it.comment }.filter { it.isNotBlank() }.distinct()
+            val finalComment = if (commentValues.size <= 1) commentValues.firstOrNull() ?: "" else { mixed.add("comment"); mixedActions["comment"] = "KEEP"; "" }
 
-            val descriptions = filesToEdit.map { it.description }.toSet()
-            val finalDescription = if (descriptions.size == 1) descriptions.first() else { mixed.add("description"); mixedActions["description"] = "KEEP"; "" }
+            val descriptionValues = filesToEdit.map { it.description }.filter { it.isNotBlank() }.distinct()
+            val finalDescription = if (descriptionValues.size <= 1) descriptionValues.firstOrNull() ?: "" else { mixed.add("description"); mixedActions["description"] = "KEEP"; "" }
 
-            val composers = filesToEdit.map { it.composer }.toSet()
-            val finalComposer = if (composers.size == 1) composers.first() else { mixed.add("composer"); mixedActions["composer"] = "KEEP"; "" }
+            val composerValues = filesToEdit.map { it.composer }.filter { it.isNotBlank() }.distinct()
+            val finalComposer = if (composerValues.size <= 1) composerValues.firstOrNull() ?: "" else { mixed.add("composer"); mixedActions["composer"] = "KEEP"; "" }
 
-            val discNumbers = filesToEdit.map { it.discNumber }.toSet()
-            val finalDiscNumber = if (discNumbers.size == 1) discNumbers.first() else { mixed.add("discNumber"); mixedActions["discNumber"] = "KEEP"; "" }
+            val discNumberValues = filesToEdit.map { it.discNumber }.filter { it.isNotBlank() }.distinct()
+            val finalDiscNumber = if (discNumberValues.size <= 1) discNumberValues.firstOrNull() ?: "" else { mixed.add("discNumber"); mixedActions["discNumber"] = "KEEP"; "" }
 
             val filesWithCoverArtCount = filesToEdit.count { it.hasCoverArt }
 

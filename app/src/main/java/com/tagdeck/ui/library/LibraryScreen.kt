@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -441,9 +442,19 @@ fun LibraryScreen(
                         }
                     }
                 } else if (files.isEmpty()) {
-                    EmptyStateComponent(
-                        onSelectFilesClick = { fileLauncher.launch(arrayOf("audio/*")) }
-                    )
+                    val hasAnyLoadedFiles by viewModel.hasAnyLoadedFiles.collectAsState()
+                    if (hasAnyLoadedFiles) {
+                        NoFilterMatchesComponent(
+                            onClearFilters = {
+                                viewModel.setSearchQuery("")
+                                viewModel.setSelectedFormat("All")
+                            }
+                        )
+                    } else {
+                        EmptyStateComponent(
+                            onSelectFilesClick = { fileLauncher.launch(arrayOf("audio/*")) }
+                        )
+                    }
                 } else {
                     // Files list
                     LazyColumn(
@@ -626,6 +637,9 @@ fun AudioItemCard(
 
                 // High-density Metadata Badges (Genre, Year, Format)
                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(androidx.compose.foundation.rememberScrollState()),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -687,7 +701,9 @@ private fun FormatBadge(format: String) {
             text = format,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            maxLines = 1,
+            overflow = TextOverflow.Clip
         )
     }
 }
@@ -742,6 +758,50 @@ private fun YearBadge(year: String) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onTertiaryContainer
         )
+    }
+}
+
+@Composable
+fun NoFilterMatchesComponent(
+    onClearFilters: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.widthIn(max = 450.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(56.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No Files Match",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "No loaded files match your current search or format filter.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            TextButton(onClick = onClearFilters) {
+                Text("Clear Filters")
+            }
+        }
     }
 }
 
