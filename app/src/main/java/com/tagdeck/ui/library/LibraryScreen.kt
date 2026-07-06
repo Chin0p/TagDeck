@@ -260,91 +260,85 @@ fun LibraryScreen(
             )
         },
         bottomBar = {
-            AnimatedVisibility(
-                visible = files.isNotEmpty(),
-                enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }),
-                exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it })
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                    TextButton(
+                        enabled = selectedCount > 0,
+                        onClick = { 
+                            onEditSelected(selectedUris.toList()) 
+                        }
                     ) {
-                        TextButton(
-                            enabled = selectedCount > 0,
-                            onClick = { 
-                                onEditSelected(selectedUris.toList()) 
-                            }
-                        ) {
-                            val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = if (selectedCount == 1) Icons.Default.Edit else Icons.Default.AutoAwesome, 
-                                    contentDescription = "Edit",
-                                    tint = tint
-                                )
-                                Text("Edit", color = tint)
-                            }
+                        val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = if (selectedCount == 1) Icons.Default.Edit else Icons.Default.AutoAwesome, 
+                                contentDescription = "Edit",
+                                tint = tint
+                            )
+                            Text("Edit", color = tint)
                         }
-                        
-                        TextButton(
-                            enabled = selectedCount > 0,
-                            onClick = { 
-                                onNavigateToRename(selectedUris.toList()) 
-                            }
-                        ) {
-                            val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Default.DriveFileRenameOutline, 
-                                    contentDescription = "Rename",
-                                    tint = tint
-                                )
-                                Text("Rename", color = tint)
-                            }
+                    }
+                    
+                    TextButton(
+                        enabled = selectedCount > 0,
+                        onClick = { 
+                            onNavigateToRename(selectedUris.toList()) 
                         }
-                        
-                        TextButton(
-                            enabled = hasPending && !isLoading,
-                            onClick = {
-                                viewModel.commitPendingChanges(context) { success ->
-                                    if (success) {
-                                        android.widget.Toast.makeText(context, "Successfully saved all changes to disk!", android.widget.Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        android.widget.Toast.makeText(context, "Failed to write changes.", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
+                    ) {
+                        val tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.DriveFileRenameOutline, 
+                                contentDescription = "Rename",
+                                tint = tint
+                            )
+                            Text("Rename", color = tint)
+                        }
+                    }
+                    
+                    TextButton(
+                        enabled = hasPending && !isLoading,
+                        onClick = {
+                            viewModel.commitPendingChanges(context) { success ->
+                                if (success) {
+                                    android.widget.Toast.makeText(context, "Successfully saved all changes to disk!", android.widget.Toast.LENGTH_SHORT).show()
+                                } else {
+                                    android.widget.Toast.makeText(context, "Failed to write changes.", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Default.Save, 
-                                    contentDescription = "Save Changes",
-                                    tint = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                )
-                                Text(
-                                    text = "Save",
-                                    color = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                )
-                            }
                         }
-                        
-                        TextButton(
-                            onClick = onNavigateToSettings
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings, 
-                                    contentDescription = "Settings",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text("Settings", color = MaterialTheme.colorScheme.primary)
-                            }
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Save, 
+                                contentDescription = "Save Changes",
+                                tint = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                            Text(
+                                text = "Save",
+                                color = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            )
+                        }
+                    }
+                    
+                    TextButton(
+                        onClick = onNavigateToSettings
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Settings, 
+                                contentDescription = "Settings",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text("Settings", color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
