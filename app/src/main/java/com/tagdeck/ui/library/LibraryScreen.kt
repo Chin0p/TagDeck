@@ -401,9 +401,11 @@ fun LibraryScreen(
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .height(42.dp)
                             .padding(bottom = 8.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         items(formats) { format ->
                             val isSelected = selectedFormatState == format
