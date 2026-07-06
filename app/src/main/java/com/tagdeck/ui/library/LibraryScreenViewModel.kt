@@ -16,9 +16,30 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.collection.LruCache
 
 @Stable
 class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel() {
+
+    private val thumbnailCache = LruCache<String, ImageBitmap>(120)
+
+    suspend fun getThumbnail(context: Context, uriString: String): ImageBitmap? {
+        thumbnailCache.get(uriString)?.let { return it }
+        return withContext(Dispatchers.IO) {
+            val bytes = repository.getAudioArt(context, uriString) ?: return@withContext null
+            try {
+                val options = android.graphics.BitmapFactory.Options().apply { inSampleSize = 4 }
+                val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                bmp?.asImageBitmap()?.also { thumbnailCache.put(uriString, it) }
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
 
     val isLoading = repository.isLoading
     val currentFolderUri = repository.currentFolderUri

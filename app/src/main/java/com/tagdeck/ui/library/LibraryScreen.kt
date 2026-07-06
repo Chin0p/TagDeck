@@ -98,6 +98,30 @@ import com.tagdeck.data.AudioMetadata
 import com.tagdeck.data.SettingsManager
 import com.tagdeck.theme.ThemeManager
 import com.tagdeck.theme.ThemeMode
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.ImageBitmap
+import android.content.Context
+
+private fun Modifier.fadingEdge(scrollState: androidx.compose.foundation.ScrollState): Modifier = this
+    .graphicsLayer { alpha = 0.99f }
+    .drawWithContent {
+        drawContent()
+        val fadeWidth = 24.dp.toPx()
+        if (scrollState.value < scrollState.maxValue) {
+            drawRect(
+                brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                    colors = listOf(Color.Transparent, Color.Black),
+                    startX = size.width - fadeWidth,
+                    endX = size.width
+                ),
+                blendMode = androidx.compose.ui.graphics.BlendMode.DstIn
+            )
+        }
+    }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -477,7 +501,8 @@ fun LibraryScreen(
                                     if (!isSelected) {
                                         viewModel.toggleSelection(item.uriString)
                                     }
-                                }
+                                },
+                                loadThumbnail = viewModel::getThumbnail
                             )
                         }
                     }
@@ -493,8 +518,15 @@ fun AudioItemCard(
     item: AudioMetadata,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    loadThumbnail: suspend (Context, String) -> ImageBitmap?
 ) {
+    val context = LocalContext.current
+    var thumbnail by remember(item.uriString) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(item.uriString, item.hasCoverArt) {
+        thumbnail = if (item.hasCoverArt) loadThumbnail(context, item.uriString) else null
+    }
+
     val primaryColor = MaterialTheme.colorScheme.primary
     val outlineColor = MaterialTheme.colorScheme.outline
     val selectedBorder = remember(primaryColor) { BorderStroke(1.5.dp, primaryColor) }
@@ -533,12 +565,24 @@ fun AudioItemCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (item.hasCoverArt) Icons.Default.Album else Icons.Default.MusicNote,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
+                val currentThumbnail = thumbnail
+                if (currentThumbnail != null) {
+                    Image(
+                        bitmap = currentThumbnail,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = if (item.hasCoverArt) Icons.Default.Album else Icons.Default.MusicNote,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -636,10 +680,12 @@ fun AudioItemCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // High-density Metadata Badges (Genre, Year, Format)
+                val badgeScrollState = androidx.compose.foundation.rememberScrollState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+                        .horizontalScroll(badgeScrollState)
+                        .fadingEdge(badgeScrollState),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -675,6 +721,7 @@ fun AudioItemCard(
                     }
 
                     FormatBadge(format = item.cleanFormat)
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
             }
         }
@@ -687,11 +734,11 @@ private fun FormatBadge(format: String) {
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                 shape = RoundedCornerShape(6.dp)
             )
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(6.dp)
             )
             .padding(horizontal = 6.dp, vertical = 2.dp),
@@ -701,7 +748,7 @@ private fun FormatBadge(format: String) {
             text = format,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Clip
         )
@@ -730,8 +777,7 @@ private fun GenreBadge(genre: String) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 60.dp)
+            overflow = TextOverflow.Clip
         )
     }
 }
