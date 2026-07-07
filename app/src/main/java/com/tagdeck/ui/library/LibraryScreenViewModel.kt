@@ -53,6 +53,9 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
     private val _selectedFormat = MutableStateFlow("All")
     val selectedFormat = _selectedFormat.asStateFlow()
 
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving = _isSaving.asStateFlow()
+
     val hasAnyLoadedFiles: StateFlow<Boolean> = repository.loadedFiles
         .map { it.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -131,7 +134,9 @@ class LibraryScreenViewModel(private val repository: DataRepository) : ViewModel
 
     fun commitPendingChanges(context: Context, onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
+            _isSaving.value = true
             val success = repository.commitPendingChanges(context)
+            _isSaving.value = false
             onComplete(success)
         }
     }
