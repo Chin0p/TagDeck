@@ -34,10 +34,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -69,6 +71,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -137,6 +140,7 @@ fun LibraryScreen(
     val selectedUris by viewModel.selectedUris.collectAsState()
     val selectedCount by remember { derivedStateOf { selectedUris.size } }
     val isLoading by viewModel.isLoading.collectAsState()
+    val isSaving by viewModel.isSaving.collectAsState()
     val currentFolderUri by viewModel.currentFolderUri.collectAsState()
 
     val pendingTags by viewModel.pendingTagUpdates.collectAsState()
@@ -304,12 +308,13 @@ fun LibraryScreen(
                         }
                     }
                     
+                    // Save button with badge
                     TextButton(
-                        enabled = hasPending && !isLoading,
+                        enabled = hasPending && !isLoading && !isSaving,
                         onClick = {
                             viewModel.commitPendingChanges(context) { success ->
                                 if (success) {
-                                    android.widget.Toast.makeText(context, "Successfully saved all changes to disk!", android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Successfully saved all changes!", android.widget.Toast.LENGTH_SHORT).show()
                                 } else {
                                     android.widget.Toast.makeText(context, "Failed to write changes.", android.widget.Toast.LENGTH_SHORT).show()
                                 }
@@ -317,14 +322,37 @@ fun LibraryScreen(
                         }
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Save, 
-                                contentDescription = "Save Changes",
-                                tint = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            )
+                            Box {
+                                Icon(
+                                    imageVector = Icons.Default.Save,
+                                    contentDescription = "Save Changes",
+                                    tint = if (hasPending && !isSaving) MaterialTheme.colorScheme.primary
+                                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                )
+                                // Badge
+                                if (hasPending && !isSaving) {
+                                    val count = pendingTags.size + pendingRenames.size
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(18.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.error),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = if (count > 9) "9+" else count.toString(),
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
                             Text(
-                                text = "Save",
-                                color = if (hasPending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                text = if (isSaving) "Saving..." else "Save",
+                                color = if (hasPending && !isSaving) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             )
                         }
                     }
@@ -504,6 +532,18 @@ fun LibraryScreen(
                     }
                 }
             }
+
+            // Linear progress bar above the bottom bar
+            if (isSaving) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomStart)
+                        .offset(y = -(paddingValues.calculateBottomPadding())),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
         }
     }
 }
@@ -663,10 +703,9 @@ fun AudioItemCard(
                 }
             }
 
-            // RIGHT: Status Badges Column (FIXED WIDTH)
+            // RIGHT: Status Indicators (Icons with circular backgrounds)
             Column(
-                modifier = Modifier
-                    .width(60.dp),
+                modifier = Modifier.width(48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -679,43 +718,32 @@ fun AudioItemCard(
                 } else if (item.hasPendingChanges) {
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.tertiaryContainer,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "STAGED",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Staged changes",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 } else if (item.hasSavedInSession) {
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = Color(0xFF4CAF50),
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Saved",
-                                tint = Color.White,
-                                modifier = Modifier.size(10.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "SAVED",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Saved",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
