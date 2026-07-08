@@ -323,18 +323,27 @@ fun LibraryScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Box {
-                                Icon(
-                                    imageVector = Icons.Default.Save,
-                                    contentDescription = "Save Changes",
-                                    tint = if (hasPending && !isSaving) MaterialTheme.colorScheme.primary
-                                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                )
+                                if (isSaving) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Save,
+                                        contentDescription = "Save Changes",
+                                        tint = if (hasPending) MaterialTheme.colorScheme.primary
+                                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
+                                }
                                 // Badge
                                 if (hasPending && !isSaving) {
                                     val count = pendingTags.size + pendingRenames.size
                                     Box(
                                         modifier = Modifier
                                             .align(Alignment.TopEnd)
+                                            .offset(x = 6.dp, y = (-6).dp)
                                             .size(18.dp)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.error),
@@ -532,18 +541,6 @@ fun LibraryScreen(
                     }
                 }
             }
-
-            // Linear progress bar above the bottom bar
-            if (isSaving) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomStart)
-                        .offset(y = -(paddingValues.calculateBottomPadding())),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            }
         }
     }
 }
@@ -581,7 +578,7 @@ fun AudioItemCard(
         shape = RoundedCornerShape(12.dp),
         border = if (isSelected) selectedBorder else defaultBorder,
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -709,17 +706,11 @@ fun AudioItemCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                if (item.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else if (item.hasPendingChanges) {
+                if (item.hasPendingChanges) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(CircleShape)
+                            .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
@@ -734,7 +725,7 @@ fun AudioItemCard(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .clip(CircleShape)
+                            .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
