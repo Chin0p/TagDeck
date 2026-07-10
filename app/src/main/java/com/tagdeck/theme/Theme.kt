@@ -1,8 +1,12 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.tagdeck.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -16,10 +20,10 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = DarkNavy,
     primaryContainer = Color(0xFF004F5E),
     onPrimaryContainer = Color(0xFFACEEFF),
-    secondary = PrimaryPurple,
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFF4A0083),
-    onSecondaryContainer = Color(0xFFEDD9FF),
+    secondary = SecondaryTeal,
+    onSecondary = Color(0xFF00201D),
+    secondaryContainer = Color(0xFF00504A),
+    onSecondaryContainer = Color(0xFFB2F2E8),
     tertiary = GlowPurple,
     onTertiary = DarkNavy,
     tertiaryContainer = Color(0xFF573E5C),
@@ -52,10 +56,10 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = Color.White,
     primaryContainer = Color(0xFFB5EBEF),
     onPrimaryContainer = Color(0xFF001F26),
-    secondary = Color(0xFF7B00E0),
+    secondary = Color(0xFF00695C),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFF2E7FF),
-    onSecondaryContainer = Color(0xFF280058),
+    secondaryContainer = Color(0xFFB2F2E8),
+    onSecondaryContainer = Color(0xFF002019),
     tertiary = Color(0xFF705575),
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFF2DDF7),
@@ -83,6 +87,7 @@ private val LightColorScheme = lightColorScheme(
     inversePrimary = Color(0xFF4DD9F0)
 )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AudioTagEditorTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -104,9 +109,10 @@ fun AudioTagEditorTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }
