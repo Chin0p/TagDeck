@@ -4,14 +4,14 @@ kotlin = "2.2.10"
 coreKtx = "1.15.0"
 lifecycle = "2.8.7"
 activityCompose = "1.9.3"
-composeBom = "2024.12.01"
+composeBom = "2026.06.01"
 room = "2.8.4"
 ksp = "2.2.10-2.0.2"
 navigationCompose = "2.8.5"
 coroutines = "1.9.0"
 serialization = "1.8.0"
 datastore = "1.1.2"
-taglib = "1.0.6"
+taglib = "1.0.5"
 
 
 [libraries]
